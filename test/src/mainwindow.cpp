@@ -5,6 +5,8 @@
 #include <QFile>
 #include <QTextStream>
 #include <QApplication>
+#include <QStringList>
+#include <QRegularExpression>
 
 MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent) {
 	setupScene();
@@ -136,6 +138,17 @@ void MainWindow::onExit() {
     close();
 }
 
+void MainWindow::log( const QString& msg, QColor color ) {
+	
+	if( !logOutput) return;
+	
+	QString html = QString("<font color=\"%1\">%2</font><br>")
+                   .arg(color.name())
+                   .arg(msg.toHtmlEscaped());
+	logOutput->append(html); // avelacnum es namaky log-um
+	logOutput->ensureCursorVisible();
+}
+
 void MainWindow::onCommandEntered() {
 
 	QString cmd = commandInput->text().trimmed();
@@ -158,39 +171,26 @@ void MainWindow::onCommandEntered() {
 }
 
 
-void MainWindow::parseAndExecute(const QString& commandLine) {
-    
-	QStringList tokens = commandLine.simplified().split(' ', Qt::SkipEmptyParts);
-    if ( tokens.isEmpty() ) {
-        log("Empty command", Qt::red);
-        return;
+void MainWindow::parseAndExecute( const QString& commandLine ) {
+
+	QString clean = commandLine.trimmed();
+    if (clean.isEmpty()) return;
+
+    QStringList qTokens = clean.split(' ', Qt::SkipEmptyParts);
+    if (qTokens.isEmpty()) return;
+
+    std::vector<std::string> tokens;
+    for (const auto& t : qTokens) {
+        tokens.push_back(t.toStdString());
     }
 
-    QString cmd = tokens[0].toLower();
+    auto command = CommandFactory::createCommand(this, tokens);
+    if (command) {
+        command->execute();
+    } else {
+        log("Unknown or invalid command: " + commandLine, Qt::red);
+    }	
 
-    if ( cmd == "create" && tokens.size() >= 3 ) {
-        handleCreate(tokens);
-    }
-    else if ( cmd == "connect" && tokens.size() >= 3 ) {
-        handleConnect(tokens.mid(1));  
-    }
-    else if ( cmd == "execute_file" && tokens.size() >= 2 ) {
-        handleExecuteFile(tokens);
-    }
-    else {
-        log("Unknown or invalid command: " + tokens.join(' '), Qt::red);
-    }
-}
-
-void MainWindow::log( const QString& msg, QColor color ) {
-	
-	if( !logOutput) return;
-	
-	QString html = QString("<font color=\"%1\">%2</font><br>")
-                   .arg(color.name())
-                   .arg(msg.toHtmlEscaped());
-	logOutput->append(html); // avelacnum es namaky log-um
-	logOutput->ensureCursorVisible();
 }
 
 
@@ -210,102 +210,28 @@ void MainWindow::addShapeLabel(QGraphicsItem* item, const QString& name) {
     label->setPos(r.center().x() - label->boundingRect().width()/2, r.bottom() + 8);
 }
 
-std::vector<double> MainWindow::extractCoordinates( const QStringList& args) {
-	std::vector<double> coords;
-    for ( int i = 0; i < args.size(); ++i ) {
-        if ( args[i].startsWith("-coord_") && i + 1 < args.size() ) {
-			try {
-                QPointF point = parseCoord(args[++i]);
-                coords.push_back(point.x());
-                coords.push_back(point.y());
-            }
-            catch (const QString& error) {
-                log(error, Qt::red);
-            }
-         }
-    }
-    return coords;
-}
-
 void MainWindow::executeCommand(const QStringList& tokens) {
     parseAndExecute(tokens.join(' '));
 }
 
-
-
-void MainWindow::handleCreate(const QStringList& tokens) {
-
-    if ( tokens.size() < 3 ) {
-        log("Usage: create <type> name <name> -coord_1 (x,y) ...", Qt::red);
-        return;
-    }
-
-    QString typeStr = tokens[1].toLower();  // <--- ԱՅՍՏԵՂ ՃԻՇՏ Է
-    auto shapeTypeOpt = ShapeTypeFromString(typeStr.toStdString());
-    if ( !shapeTypeOpt ) {
-        log("Unknown shape type: " + typeStr, Qt::red);
-        return;
-    }
-    ShapeType shapeType = *shapeTypeOpt;
-
-    QStringList args = tokens.mid(2);
-
-    QString name = extractName(args);
-    if ( name.isEmpty() ) {
-        log("No name provided! Use: name MyShape", Qt::red);
-        return;
-    }
-
-    auto coords = extractCoordinates(args);
-    if ( coords.empty() ) {
-        log("No coordinates provided!", Qt::red);
-        return;
-    }
-
-    if ( !CheckShapeType::isValid(shapeType, coords.size()) ) {
-        auto possible = CheckShapeType::getPossibleTypes(coords.size());
-        QStringList names;
-        for (auto t : possible) names << shapeTypeToString(t);
-        log(QString("Invalid coordinates count (%1) for %2. Possible: %3")
-            .arg(coords.size()).arg(typeStr).arg(names.join(", ")), Qt::red);
-        return;
-    }
-
-    auto shape = ShapeFactory::createShape(shapeType, name.toStdString(), coords);
-    if ( !shape ) {
-        log("Failed to create shape", Qt::red);
-        return;
-    }
-
-    QGraphicsItem* item = shape->draw(scene);
-    if ( !item ) {
-        log("Failed to draw shape", Qt::red);
-        return;
-    }
-
-    shapes[name] = item;
-    m_ownedShapes[name] = shape.release();
-	shapes[name] = item;
-    addShapeLabel(item, name);
-
-    log(name + " created ", Qt::green);
-
-}
-
 void MainWindow::handleConnect(const QStringList& args) {
    
-	 if ( args.size() < 3 ) {
-        log("Usage: connect Shape1 Shape2", Qt::red);
+	if( args.size() < 2 ) {
+        log("Usage: connect <shape1> <shape2>", Qt::red);
         return;
     }
 
-    QString a = args[0], b = args[1];
-    if ( !m_ownedShapes.contains(a) || !m_ownedShapes.contains(b) ) {
-        log("Shape not found", Qt::red);
+    QString a = args[0];
+    QString b = args[1];
+
+    if( !m_ownedShapes.contains(a) || !m_ownedShapes.contains(b) ) {
+        log("One or both shapes not found: " + a + " or " + b, Qt::red);
         return;
     }
-    auto c1 = m_ownedShapes[a]->center();
-    auto c2 = m_ownedShapes[b]->center();
+
+    QPointF c1 = m_ownedShapes[a]->center();
+    QPointF c2 = m_ownedShapes[b]->center();
+
     scene->addLine(QLineF(c1, c2), QPen(Qt::red, 3));
     log(a + " connected to " + b, Qt::yellow);
 
@@ -315,7 +241,7 @@ QString MainWindow::shapeTypeToString(ShapeType type) const {
 
     switch(type) {
     
-	    case ShapeType::TRIANGLE: 
+		case ShapeType::TRIANGLE: 
 			return "Triangle";
 	
         case ShapeType::RECTANGLE: 
@@ -354,14 +280,43 @@ void MainWindow::handleExecuteFile(const QStringList& tokens) {
 
 }
 
-QString MainWindow::extractName(const QStringList& args) const {
+std::vector<double> MainWindow::extractCoordinates(const QStringList& args) {
+    std::vector<double> coords;
 
-    for ( int i = 0; i < args.size(); ++i ) {
-        if ( args[i] == "name" && i + 1 < args.size() ) {
-            return args[i + 1];
+    for (int i = 0; i < args.size(); ++i) {
+        if (!args[i].startsWith("-coord_")) continue;
+        if (i + 1 >= args.size()) continue;
+
+        QString token = args[i + 1].trimmed();
+
+        if (token.startsWith('{') && token.endsWith('}')) {
+            QString inside = token.mid(1, token.length() - 2);
+            QStringList parts = inside.split(',');
+            if (parts.size() == 2) {
+                bool ok1, ok2;
+                double x = parts[0].trimmed().toDouble(&ok1);
+                double y = parts[1].trimmed().toDouble(&ok2);
+                if (ok1 && ok2) {
+                    coords.push_back(x);
+                    coords.push_back(y);
+                }
+            }
+        }
+    }
+    return coords;
+}
+
+
+QString MainWindow::extractName(const QStringList& args) const {
+    for (int i = 0; i < args.size() - 1; ++i) {
+        if (args[i] == "-name" || args[i] == "name") {
+            QString n = args[i + 1];
+            if (n.startsWith('{') && n.endsWith('}')) {
+                n = n.mid(1, n.length() - 2);
+            }
+            return n;
         }
     }
     return "";
 
 }
-

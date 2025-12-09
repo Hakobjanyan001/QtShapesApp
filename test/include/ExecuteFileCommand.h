@@ -9,9 +9,12 @@
 
 class MainWindow;
 
-class ExecuteFileCommand : public Command {
+class ExecuteFileCommand : public Command
+{
 public:
-    ExecuteFileCommand(MainWindow* window, const QString& filePath);
+    // Այս կոնստրուկտորը պետք է լինի հենց այսպես
+    ExecuteFileCommand(MainWindow* window, const QString& path);
+
     void execute() override;
 
 private:

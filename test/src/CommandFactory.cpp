@@ -11,31 +11,38 @@
 std::unique_ptr<Command> CommandFactory::createCommand( class MainWindow* window, const std::vector<std::string>& etokens) {
 
     if ( etokens.empty() ) return nullptr;
+	
+	std::string first = etokens[0];
+    std::transform(first.begin(), first.end(), first.begin(), 
+                   [](unsigned char c){ return std::tolower(c); });
+	if (first.find("create_") == 0) {
+        return std::make_unique<CreateShapeCommand>(window, etokens);
+    }
 
-    auto cmdType = commandTypeFromString(etokens[0]);
-    if ( !cmdType || *cmdType == CommandType::UNKNOWN ) {
+    auto cmdType = commandTypeFromString(first);
+    if (!cmdType || *cmdType == CommandType::UNKNOWN) {
         return nullptr;
     }
 
-    switch (*cmdType) {     
+    switch (*cmdType) {
         case CommandType::CREATE_SHAPE:
-			return std::make_unique<CreateShapeCommand>(window, etokens);
+            return std::make_unique<CreateShapeCommand>(window, etokens);
 
         case CommandType::CONNECT_SHAPES:
             if (etokens.size() >= 3) {
                 return std::make_unique<ConnectShapesCommand>(
-					window,
+                    window,
                     QString::fromStdString(etokens[1]),
                     QString::fromStdString(etokens[2])
                 );
             }
-            return nullptr;
+            break;
 
         case CommandType::EXECUTE_FILE:
             if (etokens.size() >= 2) {
                 return std::make_unique<ExecuteFileCommand>(
                     window,
-					QString::fromStdString(etokens[1])
+                    QString::fromStdString(etokens[1])
                 );
             }
             break;
@@ -43,5 +50,5 @@ std::unique_ptr<Command> CommandFactory::createCommand( class MainWindow* window
         default:
             break;
     }
-	return nullptr;
+    return nullptr;
 }

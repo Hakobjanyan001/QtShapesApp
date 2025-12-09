@@ -37,8 +37,10 @@
 #include <QStringList>
 
 class Shape;
+class CreateShapeCommand;
 
 class MainWindow : public QMainWindow {
+	friend class CreateShapeCommand;
 	Q_OBJECT
 public:
 	MainWindow(QWidget* parent = nullptr);
@@ -62,29 +64,32 @@ private:
 
 	void setupScene();
     void setupUI();
-
 	
-
 	void executeCommand(const QStringList& tokens); 	
 
-	void log(const QString& msg, QColor color = Qt::white); // es funkcian gruma katarvec te chexarkvec figury
 	void addShapeLabel( QGraphicsItem* item, const QString& name );
 												// textain cordinaty("100","200") QPointF-obj
 												// ogtagorcvuma draw/move komandneri jamanak
-	std::vector<double> extractCoordinates(const QStringList& args);
     
 	QString extractName(const QStringList& args) const;
 	
+	std::vector<double> extractCoordinates(const QStringList& args);
+
 	QPointF parseCoord( const QString& coordStr ); // poxakerpume kordinaty QPointF objekti
 	
 	QString shapeTypeToString(ShapeType type) const;
+
 public:
+	QGraphicsScene* getScene()  { return scene; } 	
+
+		void log(const QString& msg, QColor color = Qt::white); // es funkcian gruma katarvec te chexarkvec figury
+
 	void parseAndExecute( const QString& cmdLine ); // grac commandy haskanuma ev anum scene-um
-	void handleCreate(const QStringList& parts);
     
 	void handleConnect(const QStringList& args);
 
 	void handleExecuteFile(const QStringList& parts);
+
 };
 
 #endif //MAINWINDOW_H:

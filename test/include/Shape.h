@@ -15,7 +15,7 @@ protected:
 	QGraphicsItem* m_item = nullptr;
 public:
 	Shape( const std::string& name );
-	~Shape();
+	virtual ~Shape() = default;
 
 	std::string getName() const;
 	virtual QGraphicsItem* draw( QGraphicsScene* scene ) = 0; // bolor jarangac klassnery override petqa anen
