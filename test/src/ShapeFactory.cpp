@@ -1,28 +1,70 @@
+// Project Libraries
 #include "ShapeFactory.h"
 #include "Line.h"
 #include "Triangle.h"
 #include "Rectangle.h"
 #include "Square.h"
-#include <memory>
 
-static std::unique_ptr<Shape> ShapeFactory::createShape(const std::string& type, 
-					const std::string& name, const std::vector<double>& cords) {
-	if(type == "line" && cords.size() == 4) {
-		return std::make_unique<Line>(name, cords[0], cords[1], cords[2], cords[3]);  
-	} else if(type == "triangle" && cords.size() == 6) {
-		return std::make_unique<Triangle>(name,cords[0], cords[1], cords[2], cords[3], cords[4], cords[5]);
-	} else if(type == "rectangle") {
-		if(cords.size() == 4) {
-			return std::make_unique<Rectangle>(name, cords[0], cords[1], cords[2], cords[3]);
-		} else if(cords.size() == 8) {
-			return std::make_unique<Rectangle>(name, cords[0], cords[1], cords[2], cords[3], cords[4], cords[5], cords[6], cords[7]);
-		} 
-	}else if(type == "square") {
-		if(cords.size() == 4) {
-			return std::make_unique<Square>(name, cords[0], cords[1], cords[2], cords[3]);
-		} else if(cords.size() == 8) {
-			return std::make_unique<Square>(name, cords[0], cords[1], cords[2], cords[3], cords[4], cords[5], cords[6], cords[7]);
-		}
+
+std::unique_ptr<Shape> ShapeFactory::createShape( ShapeType etype, 
+														 const std::string& name, 
+														 const std::vector<double>& coords ) {
+	switch ( etype ) {
+		case ShapeType::LINE:
+	    	if( coords.size() != 4 ) return nullptr;
+			return std::make_unique<Line>( name,
+										   coords[0],
+										   coords[1], 
+										   coords[2], 
+										   coords[3]);
+		case ShapeType::TRIANGLE:
+			if( coords.size() != 6 ) return nullptr;
+	    	return std::make_unique<Line>( name,
+										   coords[0],
+										   coords[1], 
+										   coords[2], 
+										   coords[3]);
+       case ShapeType::RECTANGLE:
+			if( coords.size() == 4 ) {
+            	return std::make_unique<Rectangle>( name, 
+													coords[0], 
+													coords[1], 
+													coords[2], 
+													coords[3]);
+			} else if( coords.size() == 8) {
+            	return std::make_unique<Rectangle>( name, 
+												coords[0], 
+												coords[1], 
+												coords[2], 
+												coords[3],
+												coords[4],
+												coords[5],
+												coords[6],
+												coords[7]);
+	   		}
+		
+	   case ShapeType::SQUARE:
+			if( coords.size() == 4 ) {
+	        	return std::make_unique<Square>( name, 
+											 coords[0], 
+											 coords[1], 
+											 coords[2], 
+											 coords[3]);
+			} else if( coords.size() == 8) {
+            	return std::make_unique<Square>( name, 
+												coords[0], 
+												coords[1], 
+												coords[2], 
+												coords[3],
+												coords[4],
+												coords[5],
+												coords[6],
+												coords[7]);
+		   }
+			return nullptr;
+	   
+		default:
+	        return nullptr;
+	        
 	}
-	return nullptr;
 }

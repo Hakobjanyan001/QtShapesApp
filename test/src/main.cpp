@@ -1,4 +1,7 @@
-#include <mainwindow.h>
+// project library
+#include "mainwindow.h"
+
+// third-pary library
 #include <QApplication>
 
 int main(int argc, char* argv[]) {

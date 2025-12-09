@@ -1,40 +1,57 @@
-#include "../include/Square.h"
+// project library
+#include "Square.h"
+
+// third-pary library
 #include <QGraphicsRectItem>
+
+// system/standart library
 #include <cmath>
  
-Square::Square(const std::string& name, double x1, double y1, double x2, double y2) 
-		: Shape(name){
-		double dx = x2 - x1;
-		double dy = y2 - y1;
-		double side = std::sqrt(dx*dx + dy*dy);
-    	double px = -dy;
-    	double py = dx;
+Square::Square( const std::string& name, 
+				double x1, 
+				double y1, 
+				double x2, 
+				double y2) 
+				: Shape(name){
+					m_x1 = x1; 
+					m_y1 = y1;
+    				m_x2 = x2; 
+					m_y2 = y2;
+		
+					double dx = x2 - x1;
+					double dy = y2 - y1;
+					double side = std::sqrt(dx*dx + dy*dy);
+    	
+					if( side == 0 ) {
+						m_x3 = m_x4 = m_x2;
+						m_y3 = m_y4 = m_y2;
+					}
+	
+					double px = -dy;
+    				double py = dx;
 
-	    m_x1 = x1;
-	    m_y1 = y1;
-	    m_x2 = x2;
-	    m_y2 = y2;
-	    m_x3 = x2 + px;
-	    m_y3 = y2 + py;
-	    m_x4 = x1 + px;
-	    m_y4 = y1 + py;
-	    m_side = side;
+				    m_x3 = x2 + px; 
+					m_y3 = y2 + py;
+	   				 m_x4 = x1 + px; 
+					m_y4 = y1 + py;
 }
 
-Square::Square(const std::string& name,
-              double x1, double y1, double x2, double y2,
-              double x3, double y3, double x4, double y4)
-        : Shape(name) {
-			m_x1 = x1; m_y1 = y1;
-    		m_x2 = x2; m_y2 = y2;
-    		m_x3 = x3; m_y3 = y3;
-  			m_x4 = x4; m_y4 = y4;
-}
+Square::Square( const std::string& name, 
+                double x1, double y1, double x2, double y2, 
+                double x3, double y3, double x4, double y4 ) 
+                : Shape(name), 
+                  m_x1(x1), m_y1(y1), m_x2(x2), m_y2(y2), 
+                  m_x3(x3), m_y3(y3), m_x4(x4), m_y4(y4) {}
 
-QGraphicsItem* Square::draw(QGraphicsScene* scene) override {
+QGraphicsItem* Square::draw(QGraphicsScene* scene) {
     QPolygonF polygon;
     polygon << QPointF(m_x1, m_y1) << QPointF(m_x2, m_y2) 
-             << QPointF(m_x3, m_y3) << QPointF(m_x4, m_y4);
-    QGraphicsPolygonItem* item = scene->addPolygon(polygon, QPen(Qt::blue, 2), QBrush(Qt::blue));
-    return item;
+            << QPointF(m_x3, m_y3) << QPointF(m_x4, m_y4);
+   m_item = scene->addPolygon(polygon, QPen(Qt::blue, 2), QBrush(Qt::blue));
+    return m_item;
+}
+
+QPointF Square::center() const {
+    if (!m_item) return QPointF((m_x1+m_x3)/2, (m_y1+m_y3)/2);
+    return m_item->sceneBoundingRect().center();
 }

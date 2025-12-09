@@ -1,8 +1,10 @@
+// project libraries
 #include "Shape.h"
 
-Shape::Shape(const std::string& name) : m_name(name) {}
+Shape::Shape( const std::string& name ) : m_name( name ) {}
 
-virtual Shape::~Shape() {}
+Shape::~Shape() {}
 
-std::string Shape::getName() const {return m_name;}
+std::string Shape::getName() const { return m_name; }
 
+QGraphicsItem* Shape::getItem() const { return m_item; }
