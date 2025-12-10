@@ -4,6 +4,7 @@
 // third-pary
 #include <QFile>
 #include <QTextStream>
+#include <QTextEdit>
 #include <QApplication>
 #include <QStringList>
 #include <QRegularExpression>
@@ -13,7 +14,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent) {
     setupUI();
 
     log("Canvas ready! Type commands below.", Qt::cyan);
-    log("Example: create triangle name T1 -coord_1 (0,0) -coord_2 (100,100) -coord_3 (-50,150)", Qt::gray);
+    log("create_triangle -name {triangle_name} -coord_1 {0,0} -coord_2 {3,0} -coord_3 {0,4}", Qt::cyan);
 }
 MainWindow::~MainWindow(){
 }
@@ -22,8 +23,8 @@ void MainWindow::setupScene() {
 	scene->setBackgroundBrush(Qt::white);
 	
 	canvasLabel = scene->addText("Canvas");
-    canvasLabel->setDefaultTextColor(QColor(180, 180, 220, 100));
-	canvasLabel->setFont(QFont("Arial", 70, QFont::Bold));
+    canvasLabel->setDefaultTextColor(Qt::black);
+	canvasLabel->setFont(QFont("Arial", 30, QFont::Bold));
     QRectF rect = canvasLabel->boundingRect();
     canvasLabel->setPos(scene->sceneRect().center() - QPointF(rect.width()/2, rect.height()/2));
 }
@@ -40,7 +41,7 @@ void MainWindow::setupUI() {
 	commandInput = new QLineEdit(this);
 	commandInput->setPlaceholderText("Enter command here..."); // user-y grume hrammanery
 	commandInput->setFixedHeight(40); // comand consoly darcnume aveli bardzr ev gexecik
-	commandInput->setStyleSheet("front-size: 14px: padding: 8px;"); // ^ ^ ^ ^ ^ 
+	commandInput->setStyleSheet("background-color: black; color: white; font-size: 14px: padding: 8px;");
 
 	logOutput = new QTextEdit(this);
 	logOutput->setReadOnly(true); // miayn kardalu rejim
@@ -79,11 +80,11 @@ void MainWindow::setupUI() {
 	});
 
 	helpMenu->addAction(tr("Command &Help"), this, [this]() {
-        log("Available commands:\n"
-            "  create triangle name T1 -coord_1 (0,0) -coord_2 (100,100) -coord_3 (50,200)\n"
-            "  create square name S1 -coord_1 (200,200) -coord_2 (300,200)\n"
-            "  connect Shape1 Shape2\n"
-            "  execute_file myfile.txt", Qt::cyan);
+        QMessageBox::information(this, tr("Available commands"),
+           tr( "  examples of creating a form\n  create_line -name {line_name} -coord_1 {0,3} -coord_2 {3.5,-1}\n\n"
+            "  create_square -name {sqr_name} -coord_1 {0,0} -coord_2 {3,3}\n"
+            "  examples of connecting 2 objects\n  connect -object_name_1 {star_name} -object_name_2 {rect_name}\n\n"
+            "  example how to connect execute file\n example of run execute file execute_file -file_path {../a/b/c/d/script.txt}"));
     }, Qt::Key_F1); // F1 stexnov kbaci Help-i      
 
 	layout->setContentsMargins(0,0,0,0); // Canvasi shurjy spitak ezrer ereva
@@ -202,12 +203,19 @@ QPointF MainWindow::parseCoord(const QString& s) { // vercnume kordinat{10,20} v
 }
 
 void MainWindow::addShapeLabel(QGraphicsItem* item, const QString& name) { 
-	if ( !item ) return;
-    auto* label = scene->addText(name);
-    label->setDefaultTextColor(Qt::darkBlue);
-    label->setFont(QFont("Arial", 12, QFont::Bold));
-    QRectF r = item->sceneBoundingRect();
-    label->setPos(r.center().x() - label->boundingRect().width()/2, r.bottom() + 8);
+	if( !item ) return;
+   
+	QGraphicsTextItem* text = new QGraphicsTextItem(name);
+    text->setDefaultTextColor(Qt::black);
+    text->setFont(QFont("Arial", 10));
+	
+	QRectF rect = item->boundingRect();
+    QPointF center = rect.center();
+		
+	QRectF textRect = text->boundingRect();
+    text->setPos(center.x() - textRect.width() / 2, center.y() - textRect.height() / 2);
+
+	scene->addItem(text);
 }
 
 void MainWindow::executeCommand(const QStringList& tokens) {
@@ -282,21 +290,19 @@ void MainWindow::handleExecuteFile(const QStringList& tokens) {
 
 std::vector<double> MainWindow::extractCoordinates(const QStringList& args) {
     std::vector<double> coords;
+	
+	for( int i = 0; i < args.size() - 1; ++i ) {
+        QString lowerToken = args[i].toLower();
+        if( lowerToken.startsWith("-coord_") ) {
+            QString token = args[i + 1].trimmed();
+            token = token.remove('(').remove(')').remove('{').remove('}').trimmed(); 
 
-    for (int i = 0; i < args.size(); ++i) {
-        if (!args[i].startsWith("-coord_")) continue;
-        if (i + 1 >= args.size()) continue;
-
-        QString token = args[i + 1].trimmed();
-
-        if (token.startsWith('{') && token.endsWith('}')) {
-            QString inside = token.mid(1, token.length() - 2);
-            QStringList parts = inside.split(',');
-            if (parts.size() == 2) {
+            QStringList parts = token.split(',');
+            if( parts.size() == 2 ) {
                 bool ok1, ok2;
                 double x = parts[0].trimmed().toDouble(&ok1);
                 double y = parts[1].trimmed().toDouble(&ok2);
-                if (ok1 && ok2) {
+                if( ok1 && ok2 ) {
                     coords.push_back(x);
                     coords.push_back(y);
                 }
@@ -304,19 +310,19 @@ std::vector<double> MainWindow::extractCoordinates(const QStringList& args) {
         }
     }
     return coords;
+	
 }
 
 
 QString MainWindow::extractName(const QStringList& args) const {
-    for (int i = 0; i < args.size() - 1; ++i) {
-        if (args[i] == "-name" || args[i] == "name") {
-            QString n = args[i + 1];
-            if (n.startsWith('{') && n.endsWith('}')) {
-                n = n.mid(1, n.length() - 2);
-            }
+    for( int i = 0; i < args.size() - 1; ++i ) {
+    	QString lowerToken = args[i].toLower();
+        if( lowerToken == "-name" || lowerToken == "name" ) {
+            QString n = args[i + 1].trimmed();
+            n = n.remove('{').remove('}').remove('(').remove(')').trimmed();
             return n;
         }
-    }
+	}
     return "";
 
 }

@@ -78,7 +78,8 @@ private:
 	QPointF parseCoord( const QString& coordStr ); // poxakerpume kordinaty QPointF objekti
 	
 	QString shapeTypeToString(ShapeType type) const;
-
+	
+	bool firstShape = true;
 public:
 	QGraphicsScene* getScene()  { return scene; } 	
 

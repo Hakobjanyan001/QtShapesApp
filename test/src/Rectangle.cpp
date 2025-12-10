@@ -56,7 +56,7 @@ QGraphicsItem* Rectangle::draw( QGraphicsScene* scene ) {
 			<< QPointF(m_x2, m_y2) 
             << QPointF(m_x3, m_y3) 
 			<< QPointF(m_x4, m_y4);
-     m_item = scene->addPolygon(polygon, QPen(Qt::darkGreen), QBrush(Qt::green));
+     m_item = scene->addPolygon(polygon, QPen(Qt::blue), QBrush(Qt::blue));
     return m_item;
 }
 
