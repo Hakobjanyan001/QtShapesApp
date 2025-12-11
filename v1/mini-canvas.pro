@@ -42,7 +42,8 @@ HEADERS += \
 	include/Command.h \
 	include/CreateShapeCommand.h \
     include/ConnectShapesCommand.h \
-    include/ExecuteFileCommand.h
+    include/ExecuteFileCommand.h \
+    include/Constants.h
 
 INCLUDEPATH += include
 

@@ -1,5 +1,6 @@
 // project libraries
 #include "Line.h"
+#include "Constants.h"
 
 // third-par
 #include <QGraphicsLineItem>
@@ -16,7 +17,10 @@ Line::Line( const std::string& name,
 			m_y2(y2) {}
 
 QGraphicsItem* Line::draw( QGraphicsScene* scene )  {
-    m_item = scene->addLine(m_x1, m_y1, m_x2, m_y2, QPen(Qt::blue));
+	QPen pen(Constants::shapePenColor);
+    pen.setWidth(Constants::shapePenWidthDefault);
+
+    m_item = scene->addLine(m_x1, m_y1, m_x2, m_y2, pen);
     return m_item;
 }
 

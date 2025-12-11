@@ -4,6 +4,7 @@
 #include "ShapeType.h"
 #include "ShapeFactory.h"
 #include "CheckShapeType.h"
+#include "Constants.h"  
 
 // third-pary library
 #include <QColor> 
@@ -15,7 +16,7 @@ CreateShapeCommand::CreateShapeCommand(MainWindow* window,
 void CreateShapeCommand::execute() {
    
 	 if( m_tokens.size() < 3 ) {
-        m_window->log("Error: Too few arguments for create", Qt::red);
+        m_window->log("Error: Too few arguments for create", Constants::logErrorColor);
         return;
     }
 
@@ -42,7 +43,7 @@ void CreateShapeCommand::execute() {
 
     auto shapeTypeOpt = ShapeTypeFromString(typeStr);
     if( !shapeTypeOpt || *shapeTypeOpt == ShapeType::UNKNOWN ) {
-        m_window->log("Unknown shape type: " + QString::fromStdString(typeStr), Qt::red);
+        m_window->log("Unknown shape type: " + QString::fromStdString(typeStr), Constants::logErrorColor);
         return;
     }
     ShapeType shapeType = *shapeTypeOpt;
@@ -55,25 +56,25 @@ void CreateShapeCommand::execute() {
 
     QString name = m_window->extractName(args);
     if( name.isEmpty() ) {
-        m_window->log("Error: Name not provided", Qt::red);
+        m_window->log("Error: Name not provided", Constants::logErrorColor);
         return;
     }
 
     std::vector<double> coords = m_window->extractCoordinates(args);
     if( coords.empty() ) {
-        m_window->log("Error: No coordinates provided", Qt::red);
+        m_window->log("Error: No coordinates provided", Constants::logErrorColor);
         return;
     }
 
     if( !CheckShapeType::isValid(shapeType, coords.size()) ) {
-        m_window->log("Invalid coordinate count for " + QString::fromStdString(typeStr), Qt::red);
+        m_window->log("Invalid coordinate count for " + QString::fromStdString(typeStr), Constants::logErrorColor);
         return;
     }
 
     std::string stdName = name.toStdString();
     auto shape = ShapeFactory::createShape(shapeType, stdName, coords);
     if( !shape ) {
-        m_window->log("Failed to create shape '" + name + "'", Qt::red);
+        m_window->log("Failed to create shape '" + name + "'", Constants::logErrorColor);
         return;
     }
 
@@ -87,7 +88,7 @@ void CreateShapeCommand::execute() {
 		
 		QString name = QString::fromStdString(stdName);
 		if( m_window->shapes.contains(name)) {
-			m_window->log("Error shape already exists ", Qt::red);
+			m_window->log("Error shape already exists ", Constants::logErrorColor);
 			delete shape.release();
 			return;
 		}
@@ -95,9 +96,9 @@ void CreateShapeCommand::execute() {
         m_window->shapes[name] = item;
         m_window->m_ownedShapes[name] = shape.release();
         m_window->addShapeLabel(item, name);
-        m_window->log("Created " + QString::fromStdString(typeStr) + " '" + name + "'", Qt::green);
+        m_window->log("Created " + QString::fromStdString(typeStr) + " '" + name + "'", Constants::logSuccessColor);
     } else {
-        m_window->log("Failed to draw shape '" + name + "'", Qt::red);
+        m_window->log("Failed to draw shape '" + name + "'", Constants::logErrorColor);
     }
 
 }	

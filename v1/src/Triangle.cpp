@@ -1,5 +1,6 @@
 // project libraries
 #include "Triangle.h"
+#include "Constants.h"
 
 // third-party libraries
 #include <QGraphicsPolygonItem>
@@ -26,7 +27,12 @@ QGraphicsItem* Triangle::draw( QGraphicsScene* scene ) {
 	polygon << QPointF(m_x1, m_y1) 
 			<< QPointF(m_x2, m_y2) 
 			<< QPointF(m_x3, m_y3);
-	m_item = scene->addPolygon(polygon, QPen(Qt::blue), QBrush(Qt::blue));
+
+	QPen pen(Constants::shapePenColor);
+    pen.setWidth(Constants::shapePenWidthDefault);
+    QBrush brush(Constants::shapeBrushColor);
+
+	m_item = scene->addPolygon(polygon, pen, brush);
 	return m_item;
 }
 

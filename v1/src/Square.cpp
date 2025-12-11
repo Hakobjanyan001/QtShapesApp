@@ -1,5 +1,6 @@
 // project library
 #include "Square.h"
+#include "Constants.h"
 
 // third-pary library
 #include <QGraphicsRectItem>
@@ -47,7 +48,12 @@ QGraphicsItem* Square::draw(QGraphicsScene* scene) {
     QPolygonF polygon;
     polygon << QPointF(m_x1, m_y1) << QPointF(m_x2, m_y2) 
             << QPointF(m_x3, m_y3) << QPointF(m_x4, m_y4);
-   m_item = scene->addPolygon(polygon, QPen(Qt::blue, 2), QBrush(Qt::blue));
+	
+	QPen pen(Constants::shapePenColor);
+    pen.setWidth(Constants::squarePenWidth);
+    QBrush brush(Constants::shapeBrushColor);
+
+    m_item = scene->addPolygon(polygon, pen, brush);
     return m_item;
 }
 

@@ -1,5 +1,6 @@
 // project libraries
 #include "Rectangle.h"
+#include "Constants.h"
 
 // third-pary
 #include <QGraphicsPolygonItem>
@@ -56,7 +57,12 @@ QGraphicsItem* Rectangle::draw( QGraphicsScene* scene ) {
 			<< QPointF(m_x2, m_y2) 
             << QPointF(m_x3, m_y3) 
 			<< QPointF(m_x4, m_y4);
-     m_item = scene->addPolygon(polygon, QPen(Qt::blue), QBrush(Qt::blue));
+
+	QPen pen(Constants::shapePenColor);
+    pen.setWidth(Constants::shapePenWidthDefault);
+    QBrush brush(Constants::shapeBrushColor);
+
+     m_item = scene->addPolygon(polygon, pen, brush);
     return m_item;
 }
 
