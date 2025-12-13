@@ -1,9 +1,10 @@
 # Qt model
 QT += core gui widgets
 
+greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
+
 # Configs
 CONFIG += c++17 console
-CONFIG -= app_bundle
 
 TARGET = ShapeCanvas
 TEMPLATE = app
@@ -13,6 +14,7 @@ TEMPLATE = app
 SOURCES += \
     src/main.cpp \
     src/mainwindow.cpp \
+    src/Utility.cpp \
     src/Shape.cpp \
     src/ShapeFactory.cpp \
     src/Line.cpp \
@@ -25,10 +27,12 @@ SOURCES += \
     src/CommandType.cpp \
     src/CreateShapeCommand.cpp \
     src/ConnectShapesCommand.cpp \
-    src/ExecuteFileCommand.cpp \
+    src/ExecuteFileCommand.cpp 
 
 HEADERS += \
     include/mainwindow.h \
+    include/Utility.h \
+    include/Constants.h \
     include/Shape.h \
     include/ShapeFactory.h \
     include/Line.h \
@@ -43,7 +47,6 @@ HEADERS += \
 	include/CreateShapeCommand.h \
     include/ConnectShapesCommand.h \
     include/ExecuteFileCommand.h \
-    include/Constants.h
 
 INCLUDEPATH += include
 

@@ -89,7 +89,6 @@ void CreateShapeCommand::execute() {
 		QString name = QString::fromStdString(stdName);
 		if( m_window->shapes.contains(name)) {
 			m_window->log("Error shape already exists ", Constants::logErrorColor);
-			delete shape.release();
 			return;
 		}
 

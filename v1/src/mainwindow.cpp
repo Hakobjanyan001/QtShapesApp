@@ -1,125 +1,118 @@
 // project library
 #include "mainwindow.h"
 #include "Constants.h"
+#include "Utility.h"
 
 // third-pary library
+#include <QVBoxLayout>
 #include <QFile>
 #include <QTextStream>
-#include <QTextEdit>
 #include <QApplication>
 #include <QStringList>
 #include <QRegularExpression>
 #include <QTextCursor>
+#include <QMessageBox>
+#include <QFileDialog>
 
 MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent) {
-    setupScene();
-    setupUI();
+
+	setupScene();
+	setupUI();
 
     log("Canvas ready! Type commands below.", Constants::logInfoColor);
 	log(Constants::exampleCreateTriangle, Constants::logInfoColor); 
 }
 
 MainWindow::~MainWindow() {
+	for(auto shape : m_ownedShapes) {
+		delete shape;
+	}
     m_ownedShapes.clear();
 }
 
 void MainWindow::setupScene() {
-	scene = new QGraphicsScene(Constants::sceneX, Constants::sceneY,
-	                               Constants::sceneWidth, Constants::sceneHeight, this);
-	scene->setBackgroundBrush(Constants::sceneBackgroundColor);
-	
-	canvasLabel = scene->addText(Constants::canvasLabelText);
-	canvasLabel->setDefaultTextColor(Constants::canvasTextColor);
-	canvasLabel->setFont(Constants::canvasLabelFont);
-	QRectF rect = canvasLabel->boundingRect();
-	canvasLabel->setPos(scene->sceneRect().center() - QPointF(rect.width() / 2, rect.height() / 2));
+
+	scene = new QGraphicsScene(Constants::sceneX, 
+							   Constants::sceneY,
+	                           Constants::sceneWidth, 
+							   Constants::sceneHeight, 
+							   this);
+
+		Utility::helpSetupScene(scene, canvasLabel);
 }
+
 
 void MainWindow::setupUI() {
 	QWidget* central = new QWidget(this);  // stexcume himnakan widget, vorpes kentronakan hatvac
 	QVBoxLayout* layout = new QVBoxLayout(central);  // stexcuma vertical dasavorvacutyun, asumenq Qt-in vor Canvasy lini verev, log-y nerqev, Consoly amenanergev
 
 	view = new QGraphicsView(scene, this);
-	view->setRenderHint(QPainter::Antialiasing);  // gceri ankyunnery darcnume hart,aveli sirun
-	view->setDragMode(QGraphicsView::ScrollHandDrag);  // tuyle talis mknikov sharjel Canvasy
-	view->setAlignment(Qt::AlignCenter);  // Scene-y kentronacnum e View-i mej
 
 	commandInput = new QLineEdit(this);
-	commandInput->setStyleSheet("background-color: #f8f9fa; color: black; font-size: 14px; padding: 10px; border: 2px solid #444; border-radius: 4px;");
-	commandInput->setFixedHeight(Constants::commandInputHeight);  // comand consoly darcnume aveli bardzr ev gexecik
-
 
 	logOutput = new QTextEdit(this);
-	logOutput->setReadOnly(true);  // miayn kardalu rejim
-	logOutput->setStyleSheet("background-color: #f8f9fa; color: black; font-family: 'Courier New', monospace; font-size: 13px; border: 1px solid #ccc;");
-	logOutput->setMaximumHeight(Constants::logOutputMaxHeight);
 
-#if defined(__GNUC__) || defined(__clang__)  // anjatenq warningy
-    #pragma GCC diagnostic push
-    #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-#endif
 
-	QMenuBar* menuBar = this->menuBar();
-	menuBar->setStyleSheet("background-color: black; color: white; font-size: 14px;");
-	menuBar->setFixedHeight(30); // ^ ^ ^ ^ texti guyn ev chap
-	QMenu* fileMenu = menuBar->addMenu(tr("File")); // textery voronq kerevan
+	menuBar = new QMenuBar(this);
 
-	fileMenu->addAction(tr("New"), this, &MainWindow::onNewCanvas, QKeySequence::New); // maqrel canvasy vor nory lini + baci Ctrl + N
+	fileMenu = menuBar->addMenu(tr("File")); 
     
-	fileMenu->addAction(tr("Open"), this, &MainWindow::onOpenFile, QKeySequence::Open); // baci fayly + baci Ctrl + O
-					
-	fileMenu->addAction(tr("&Save As"), this, &MainWindow::onSaveFile, QKeySequence::Save); // pahpani fayly + pahpani Ctrl + S-ov
-    
+	helpMenu = menuBar->addMenu(tr("Help")); 
+
+
+	logTitle = new QLabel(" Log"); // stexcumenq pitak(log) anunov
+
+	consoleTitle = new QLabel(" Command console"); // stexcumenq pitak(command consol) anunov
+
+	fileMenu->addAction(tr("New"), this, &MainWindow::onNewCanvas)->setShortcut(QKeySequence::New); // maqrel canvasy vor nory lini + baci Ctrl + N
+		
+	fileMenu->addAction(tr("Open"), this, &MainWindow::onOpenFile)->setShortcut(QKeySequence::Open); // baci fayly + baci Ctrl + O
+
+	fileMenu->addAction(tr("&Save As"), this, &MainWindow::onSaveFile)->setShortcut(QKeySequence::Save); // pahpani fayly + pahpani Ctrl + S-ov
 	fileMenu->addSeparator();
-    
-	fileMenu->addAction(tr("Exit"), this, &QMainWindow::close, QKeySequence::Quit); // Ctrl + F4  vor dursga
 
-    
-	QMenu* helpMenu = menuBar->addMenu(tr("Help")); 
+	fileMenu->addAction(tr("Exit"), this, &QMainWindow::close) ->setShortcut(QKeySequence::Quit); // Ctrl + F4  vor dursga
+
+
 	helpMenu->addAction(tr("About"), this, [this]() { // der patrrast chi uxxaki logov kasi et masin
-        QMessageBox::information(this, tr("About"),
-            tr("Shape Drawer v1.0\n\n"
-               "Simple vector drawing with text commands\n"
-               "Created with Qt 5/6 + C++\n\n"
-               "Press F1 anytime for help"));
+		QMessageBox::information(this, tr("About"),
+			tr( "Shape Drawer v1.0\n\n"
+				"Simple vector drawing with text commands\n"
+				"Created with Qt 5/6 + C++\n\n"
+				"Press F1 anytime for help"));
 	});
 
 	helpMenu->addAction(tr("Command &Help"), this, [this]() {
-        QMessageBox::information(this, tr("Available commands"),
-           tr( "  examples of creating a form\n  create_line -name {line_name} -coord_1 {0,3} -coord_2 {3.5,-1}\n\n"
-            "  create_square -name {sqr_name} -coord_1 {0,0} -coord_2 {3,3}\n"
-            "  examples of connecting 2 objects\n  connect -object_name_1 {star_name} -object_name_2 {rect_name}\n\n"
-            "  example how to connect execute file\n example of run execute file execute_file -file_path {../a/b/c/d/script.txt}"));
-    }, Qt::Key_F1); // F1 stexnov kbaci Help-i      
+		QMessageBox::information(this, tr("Available commands"),
+			tr( "  examples of creating a form\n  create_line -name {line_name} -coord_1 {0,3} -coord_2 {3.5,-1}\n\n"
+			"  create_square -name {sqr_name} -coord_1 {0,0} -coord_2 {3,3}\n"
+			"  examples of connecting 2 objects\n  connect -object_name_1 {star_name} -object_name_2 {rect_name}\n\n"
+			"  example how to connect execute file\n example of run execute file execute_file -file_path {../a/b/c/d/script.txt}"));
+	})->setShortcut(Qt::Key_F1); // F1 stexnov kbaci Help-i 
 
-	layout->setContentsMargins(0,0,0,0); // Canvasi shurjy spitak ezrer ereva
-	layout->addWidget(menuBar);	// patuhani vra ktexadri userin ognox bloky 
-	layout->addWidget(view); // view zbaxecnuma mec taracq, 1 nshanakuma mecana 1 chapov 
-
-	QLabel* logTitle = new QLabel(" Log"); // stexcumenq pitak(log) anunov
-	logTitle->setStyleSheet("background-color: black; color: white; font-weight: bold; padding: 4px;"); // console-style panel
-
-	layout->addWidget(logTitle); // avelacnumen Log Window-un
-
-	layout->addWidget(logOutput); // et window-i mejel dnumen mer outputy
-
-	QLabel* consoleTitle = new QLabel(" Command console"); // stexcumenq pitak(command consol) anunov
-		consoleTitle->setStyleSheet("background-color: #333333; color: white; font-weight: bold; padding: 4px;");
-
-
-	layout->addWidget(consoleTitle); // avleacnumenq command console  patuhany
-	layout->addWidget(commandInput); // dnumenq useri grac commandy
-
+	Utility::helpSetupUI(view,
+						 commandInput,
+						 logOutput,
+						 menuBar,
+						 layout,
+						 logTitle,
+						 consoleTitle);
+	
 	setCentralWidget(central);
-	resize(Constants::windowWidth, Constants::windowHeight);
+	setMenuBar(menuBar);
 	setWindowTitle("Shapes Designer"); // anuny 
+
+	Utility::helpSetupUI(view, 
+                     	 commandInput,
+                     	 logOutput,
+                     	 menuBar,
+                     	 layout,
+                     	 logTitle,
+                     	 consoleTitle);
 
 	connect(commandInput, &QLineEdit::returnPressed, this, &MainWindow::onCommandEntered); // stexcumen signal-slot kap, ENTER sexmelis kanchumenq onCommandEntered()
 
 	log("ShapDesigner started. Ready for commands.", Constants::logSuccessColor); 
-#if defined(__GNUC__) || defined(__clang__)
-    #pragma GCC diagnostic pop
-#endif
 }
 
 void MainWindow::onNewCanvas() {

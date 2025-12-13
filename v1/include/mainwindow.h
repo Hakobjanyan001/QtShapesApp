@@ -1,7 +1,7 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
-// project headers
+// project library
 #include "Shape.h"
 #include "ShapeType.h"
 #include "ShapeFactory.h"
@@ -10,31 +10,19 @@
 #include "Command.h"
 
 
-// system/standart library
-#include <memory>
-#include <optional>
-#include <vector>
-
-// third-pary
-#include <QVBoxLayout>
+// third-party library
 #include <QMainWindow>
 #include <QMenuBar>
 #include <QGraphicsScene>
 #include <QGraphicsView>
-#include <QGraphicsItem>
+#include <QGraphicsTextItem>
 #include <QLineEdit>
 #include <QTextEdit>
 #include <QLabel>
 #include <QMap>
-#include <QGraphicsItem>
+#include <QMenu>
 #include <QStringList>
 #include <QColor>
-#include <QTime>
-#include <QRegularExpression>
-#include <QFileDialog>
-#include <QMessageBox>
-#include <QKeySequence>
-#include <QStringList>
 
 class Shape;
 class CreateShapeCommand;
@@ -58,9 +46,14 @@ private:
 	QGraphicsTextItem* canvasLabel = nullptr; // figuri anuny canvasi vra nshelu hamar
 	QLineEdit* commandInput = nullptr;   // ogtvoxy gruma commandy aystex
 	QTextEdit* logOutput = nullptr;      // aystex grumenq haxordagrutyun pass kam failed
+	QMenuBar* menuBar = nullptr;
+	QMenu* fileMenu = nullptr;
+	QMenu* helpMenu = nullptr;
+	QLabel* logTitle = nullptr;
+	QLabel* consoleTitle = nullptr;
 
-	QMap<QString, QGraphicsItem*> shapes; // pahumenq bolor dzevery 
-	QMap<QString, Shape*> m_ownedShapes; // shape objecty pahuma unique_ptr-ov vor memory leak chlini
+	QMap<QString, QGraphicsItem*> shapes; // pahumenq bolor dzevery cuctalu hamar
+	QMap<QString, Shape*> m_ownedShapes; // shapin patkanox objectnernenq  pahum unique_ptr-ov vor memory leak chlini
 
 	void setupScene();
     void setupUI();
