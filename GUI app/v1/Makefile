@@ -16,7 +16,7 @@ CC            = gcc
 CXX           = g++
 DEFINES       = -DQT_NO_DEBUG -DQT_WIDGETS_LIB -DQT_GUI_LIB -DQT_CORE_LIB
 CFLAGS        = -pipe -O2 -Wall -Wextra -fPIC -D_REENTRANT $(DEFINES)
-CXXFLAGS      = -pipe -O2 -Wall -Wextra -fPIC -D_REENTRANT $(DEFINES)
+CXXFLAGS      = -pipe -O2 -std=gnu++1z -Wall -Wextra -fPIC -D_REENTRANT $(DEFINES)
 INCPATH       = -I. -Iinclude -I/usr/include/x86_64-linux-gnu/qt6 -I/usr/include/x86_64-linux-gnu/qt6/QtWidgets -I/usr/include/x86_64-linux-gnu/qt6/QtGui -I/usr/include/x86_64-linux-gnu/qt6/QtCore -I. -I/usr/lib/x86_64-linux-gnu/qt6/mkspecs/linux-g++
 QMAKE         = /usr/bin/qmake6
 DEL_FILE      = rm -f
@@ -37,7 +37,7 @@ MOVE          = mv -f
 TAR           = tar -cf
 COMPRESS      = gzip -9f
 DISTNAME      = ShapeCanvas1.0.0
-DISTDIR = /home/hakobjanyan/QtShapesApp/GUI\ app/build/ShapeCanvas1.0.0
+DISTDIR = /home/hakobjanyan/QtShapesApp/GUI\ app/v1/build/ShapeCanvas1.0.0
 LINK          = g++
 LFLAGS        = -Wl,-O1 -Wl,-rpath-link,/usr/lib/x86_64-linux-gnu
 LIBS          = $(SUBLIBS) /usr/lib/x86_64-linux-gnu/libQt6Widgets.so /usr/lib/x86_64-linux-gnu/libQt6Gui.so /usr/lib/x86_64-linux-gnu/libGLX.so /usr/lib/x86_64-linux-gnu/libOpenGL.so /usr/lib/x86_64-linux-gnu/libQt6Core.so -lpthread -lGLX -lOpenGL   
@@ -54,6 +54,7 @@ OBJECTS_DIR   = build/
 
 SOURCES       = src/main.cpp \
 		src/mainwindow.cpp \
+		src/Utility.cpp \
 		src/Shape.cpp \
 		src/ShapeFactory.cpp \
 		src/Line.cpp \
@@ -69,6 +70,7 @@ SOURCES       = src/main.cpp \
 		src/ExecuteFileCommand.cpp moc_mainwindow.cpp
 OBJECTS       = build/main.o \
 		build/mainwindow.o \
+		build/Utility.o \
 		build/Shape.o \
 		build/ShapeFactory.o \
 		build/Line.o \
@@ -156,7 +158,7 @@ DIST          = /usr/lib/x86_64-linux-gnu/qt6/mkspecs/features/spec_pre.prf \
 		/usr/lib/x86_64-linux-gnu/qt6/mkspecs/features/qt_config.prf \
 		/usr/lib/x86_64-linux-gnu/qt6/mkspecs/linux-g++/qmake.conf \
 		/usr/lib/x86_64-linux-gnu/qt6/mkspecs/features/spec_post.prf \
-		../.qmake.stash \
+		.qmake.stash \
 		/usr/lib/x86_64-linux-gnu/qt6/mkspecs/features/exclusive_builds.prf \
 		/usr/lib/x86_64-linux-gnu/qt6/mkspecs/features/toolchain.prf \
 		/usr/lib/x86_64-linux-gnu/qt6/mkspecs/features/default_pre.prf \
@@ -177,6 +179,8 @@ DIST          = /usr/lib/x86_64-linux-gnu/qt6/mkspecs/features/spec_pre.prf \
 		/usr/lib/x86_64-linux-gnu/qt6/mkspecs/features/yacc.prf \
 		/usr/lib/x86_64-linux-gnu/qt6/mkspecs/features/lex.prf \
 		mini-canvas.pro include/mainwindow.h \
+		include/Utility.h \
+		include/Constants.h \
 		include/Shape.h \
 		include/ShapeFactory.h \
 		include/Line.h \
@@ -192,6 +196,7 @@ DIST          = /usr/lib/x86_64-linux-gnu/qt6/mkspecs/features/spec_pre.prf \
 		include/ConnectShapesCommand.h \
 		include/ExecuteFileCommand.h src/main.cpp \
 		src/mainwindow.cpp \
+		src/Utility.cpp \
 		src/Shape.cpp \
 		src/ShapeFactory.cpp \
 		src/Line.cpp \
@@ -289,7 +294,7 @@ Makefile: mini-canvas.pro /usr/lib/x86_64-linux-gnu/qt6/mkspecs/linux-g++/qmake.
 		/usr/lib/x86_64-linux-gnu/qt6/mkspecs/features/qt_config.prf \
 		/usr/lib/x86_64-linux-gnu/qt6/mkspecs/linux-g++/qmake.conf \
 		/usr/lib/x86_64-linux-gnu/qt6/mkspecs/features/spec_post.prf \
-		../.qmake.stash \
+		.qmake.stash \
 		/usr/lib/x86_64-linux-gnu/qt6/mkspecs/features/exclusive_builds.prf \
 		/usr/lib/x86_64-linux-gnu/qt6/mkspecs/features/toolchain.prf \
 		/usr/lib/x86_64-linux-gnu/qt6/mkspecs/features/default_pre.prf \
@@ -387,7 +392,7 @@ Makefile: mini-canvas.pro /usr/lib/x86_64-linux-gnu/qt6/mkspecs/linux-g++/qmake.
 /usr/lib/x86_64-linux-gnu/qt6/mkspecs/features/qt_config.prf:
 /usr/lib/x86_64-linux-gnu/qt6/mkspecs/linux-g++/qmake.conf:
 /usr/lib/x86_64-linux-gnu/qt6/mkspecs/features/spec_post.prf:
-../.qmake.stash:
+.qmake.stash:
 /usr/lib/x86_64-linux-gnu/qt6/mkspecs/features/exclusive_builds.prf:
 /usr/lib/x86_64-linux-gnu/qt6/mkspecs/features/toolchain.prf:
 /usr/lib/x86_64-linux-gnu/qt6/mkspecs/features/default_pre.prf:
@@ -426,8 +431,8 @@ distdir: FORCE
 	@test -d $(DISTDIR) || mkdir -p $(DISTDIR)
 	$(COPY_FILE) --parents $(DIST) $(DISTDIR)/
 	$(COPY_FILE) --parents /usr/lib/x86_64-linux-gnu/qt6/mkspecs/features/data/dummy.cpp $(DISTDIR)/
-	$(COPY_FILE) --parents include/mainwindow.h include/Shape.h include/ShapeFactory.h include/Line.h include/Triangle.h include/Rectangle.h include/Square.h include/CheckShapeType.h include/ShapeType.h include/CommandFactory.h include/CommandType.h include/Command.h include/CreateShapeCommand.h include/ConnectShapesCommand.h include/ExecuteFileCommand.h $(DISTDIR)/
-	$(COPY_FILE) --parents src/main.cpp src/mainwindow.cpp src/Shape.cpp src/ShapeFactory.cpp src/Line.cpp src/Triangle.cpp src/Rectangle.cpp src/Square.cpp src/CheckShapeType.cpp src/ShapeType.cpp src/CommandFactory.cpp src/CommandType.cpp src/CreateShapeCommand.cpp src/ConnectShapesCommand.cpp src/ExecuteFileCommand.cpp $(DISTDIR)/
+	$(COPY_FILE) --parents include/mainwindow.h include/Utility.h include/Constants.h include/Shape.h include/ShapeFactory.h include/Line.h include/Triangle.h include/Rectangle.h include/Square.h include/CheckShapeType.h include/ShapeType.h include/CommandFactory.h include/CommandType.h include/Command.h include/CreateShapeCommand.h include/ConnectShapesCommand.h include/ExecuteFileCommand.h $(DISTDIR)/
+	$(COPY_FILE) --parents src/main.cpp src/mainwindow.cpp src/Utility.cpp src/Shape.cpp src/ShapeFactory.cpp src/Line.cpp src/Triangle.cpp src/Rectangle.cpp src/Square.cpp src/CheckShapeType.cpp src/ShapeType.cpp src/CommandFactory.cpp src/CommandType.cpp src/CreateShapeCommand.cpp src/ConnectShapesCommand.cpp src/ExecuteFileCommand.cpp $(DISTDIR)/
 
 
 clean: compiler_clean 
@@ -437,6 +442,7 @@ clean: compiler_clean
 
 distclean: clean 
 	-$(DEL_FILE) $(TARGET) 
+	-$(DEL_FILE) .qmake.stash
 	-$(DEL_FILE) Makefile
 
 
@@ -456,13 +462,14 @@ compiler_moc_predefs_make_all: moc_predefs.h
 compiler_moc_predefs_clean:
 	-$(DEL_FILE) moc_predefs.h
 moc_predefs.h: /usr/lib/x86_64-linux-gnu/qt6/mkspecs/features/data/dummy.cpp
-	g++ -pipe -O2 -Wall -Wextra -fPIC -dM -E -o moc_predefs.h /usr/lib/x86_64-linux-gnu/qt6/mkspecs/features/data/dummy.cpp
+	g++ -pipe -O2 -std=gnu++1z -Wall -Wextra -fPIC -dM -E -o moc_predefs.h /usr/lib/x86_64-linux-gnu/qt6/mkspecs/features/data/dummy.cpp
 
 compiler_moc_header_make_all: moc_mainwindow.cpp
 compiler_moc_header_clean:
 	-$(DEL_FILE) moc_mainwindow.cpp
 moc_mainwindow.cpp: include/mainwindow.h \
 		include/Shape.h \
+		include/Constants.h \
 		include/ShapeType.h \
 		include/ShapeFactory.h \
 		include/CheckShapeType.h \
@@ -470,7 +477,7 @@ moc_mainwindow.cpp: include/mainwindow.h \
 		include/Command.h \
 		moc_predefs.h \
 		/usr/lib/qt6/libexec/moc
-	/usr/lib/qt6/libexec/moc $(DEFINES) --include '/home/hakobjanyan/QtShapesApp/GUI app/moc_predefs.h' -I/usr/lib/x86_64-linux-gnu/qt6/mkspecs/linux-g++ -I'/home/hakobjanyan/QtShapesApp/GUI app' -I'/home/hakobjanyan/QtShapesApp/GUI app/include' -I/usr/include/x86_64-linux-gnu/qt6 -I/usr/include/x86_64-linux-gnu/qt6/QtWidgets -I/usr/include/x86_64-linux-gnu/qt6/QtGui -I/usr/include/x86_64-linux-gnu/qt6/QtCore -I/usr/include/c++/13 -I/usr/include/x86_64-linux-gnu/c++/13 -I/usr/include/c++/13/backward -I/usr/lib/gcc/x86_64-linux-gnu/13/include -I/usr/local/include -I/usr/include/x86_64-linux-gnu -I/usr/include include/mainwindow.h -o moc_mainwindow.cpp
+	/usr/lib/qt6/libexec/moc $(DEFINES) --include '/home/hakobjanyan/QtShapesApp/GUI app/v1/moc_predefs.h' -I/usr/lib/x86_64-linux-gnu/qt6/mkspecs/linux-g++ -I'/home/hakobjanyan/QtShapesApp/GUI app/v1' -I'/home/hakobjanyan/QtShapesApp/GUI app/v1/include' -I/usr/include/x86_64-linux-gnu/qt6 -I/usr/include/x86_64-linux-gnu/qt6/QtWidgets -I/usr/include/x86_64-linux-gnu/qt6/QtGui -I/usr/include/x86_64-linux-gnu/qt6/QtCore -I/usr/include/c++/13 -I/usr/include/x86_64-linux-gnu/c++/13 -I/usr/include/c++/13/backward -I/usr/lib/gcc/x86_64-linux-gnu/13/include -I/usr/local/include -I/usr/include/x86_64-linux-gnu -I/usr/include include/mainwindow.h -o moc_mainwindow.cpp
 
 compiler_moc_objc_header_make_all:
 compiler_moc_objc_header_clean:
@@ -490,6 +497,7 @@ compiler_clean: compiler_moc_predefs_clean compiler_moc_header_clean
 
 build/main.o: src/main.cpp include/mainwindow.h \
 		include/Shape.h \
+		include/Constants.h \
 		include/ShapeType.h \
 		include/ShapeFactory.h \
 		include/CheckShapeType.h \
@@ -499,18 +507,26 @@ build/main.o: src/main.cpp include/mainwindow.h \
 
 build/mainwindow.o: src/mainwindow.cpp include/mainwindow.h \
 		include/Shape.h \
+		include/Constants.h \
 		include/ShapeType.h \
 		include/ShapeFactory.h \
 		include/CheckShapeType.h \
 		include/CommandFactory.h \
-		include/Command.h
+		include/Command.h \
+		include/Utility.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/mainwindow.o src/mainwindow.cpp
 
-build/Shape.o: src/Shape.cpp include/Shape.h
+build/Utility.o: src/Utility.cpp include/Utility.h \
+		include/Constants.h
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/Utility.o src/Utility.cpp
+
+build/Shape.o: src/Shape.cpp include/Shape.h \
+		include/Constants.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/Shape.o src/Shape.cpp
 
 build/ShapeFactory.o: src/ShapeFactory.cpp include/ShapeFactory.h \
 		include/Shape.h \
+		include/Constants.h \
 		include/ShapeType.h \
 		include/Line.h \
 		include/Triangle.h \
@@ -519,19 +535,23 @@ build/ShapeFactory.o: src/ShapeFactory.cpp include/ShapeFactory.h \
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/ShapeFactory.o src/ShapeFactory.cpp
 
 build/Line.o: src/Line.cpp include/Line.h \
-		include/Shape.h
+		include/Shape.h \
+		include/Constants.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/Line.o src/Line.cpp
 
 build/Triangle.o: src/Triangle.cpp include/Triangle.h \
-		include/Shape.h
+		include/Shape.h \
+		include/Constants.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/Triangle.o src/Triangle.cpp
 
 build/Rectangle.o: src/Rectangle.cpp include/Rectangle.h \
-		include/Shape.h
+		include/Shape.h \
+		include/Constants.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/Rectangle.o src/Rectangle.cpp
 
 build/Square.o: src/Square.cpp include/Square.h \
-		include/Shape.h
+		include/Shape.h \
+		include/Constants.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/Square.o src/Square.cpp
 
 build/CheckShapeType.o: src/CheckShapeType.cpp include/CheckShapeType.h \
@@ -543,6 +563,7 @@ build/ShapeType.o: src/ShapeType.cpp include/ShapeType.h
 
 build/CommandFactory.o: src/CommandFactory.cpp include/mainwindow.h \
 		include/Shape.h \
+		include/Constants.h \
 		include/ShapeType.h \
 		include/ShapeFactory.h \
 		include/CheckShapeType.h \
@@ -561,6 +582,7 @@ build/CreateShapeCommand.o: src/CreateShapeCommand.cpp include/CreateShapeComman
 		include/Command.h \
 		include/mainwindow.h \
 		include/Shape.h \
+		include/Constants.h \
 		include/ShapeType.h \
 		include/ShapeFactory.h \
 		include/CheckShapeType.h \
@@ -571,6 +593,7 @@ build/ConnectShapesCommand.o: src/ConnectShapesCommand.cpp include/ConnectShapes
 		include/Command.h \
 		include/mainwindow.h \
 		include/Shape.h \
+		include/Constants.h \
 		include/ShapeType.h \
 		include/ShapeFactory.h \
 		include/CheckShapeType.h \
@@ -581,6 +604,7 @@ build/ExecuteFileCommand.o: src/ExecuteFileCommand.cpp include/ExecuteFileComman
 		include/Command.h \
 		include/mainwindow.h \
 		include/Shape.h \
+		include/Constants.h \
 		include/ShapeType.h \
 		include/ShapeFactory.h \
 		include/CheckShapeType.h \
