@@ -1,0 +1,4 @@
+create_line -name {my_line} -coord_1 {0,0} -coord_2 {20,20}
+create_triangle -name {my_triangle} -coord_1 {100,100} -coord_2 {30,100} -coord_3 {20,30}
+create_rectangle -name {my_rectangle} -coord_1 {40,40} -coord_2 {60,50}
+create_square -name {my_square} -coord_1 {100,40} -coord_2 {100,60}
